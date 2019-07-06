@@ -5,6 +5,10 @@ package sortthread
 
 const SortCapability = "SORT"
 
+var ThreadCapabilities = []string{"THREAD=ORDEREDSUBJECT", "THREAD=REF", "THREAD=REFERENCES"}
+
+type ThreadAlgorithm string
+
 // SortField is a field that can be used to sort messages.
 type SortField string
 

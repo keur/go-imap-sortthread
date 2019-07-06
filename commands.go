@@ -13,6 +13,13 @@ type SortCommand struct {
 	SearchCriteria *imap.SearchCriteria
 }
 
+// ThreadCommand is a THREAD command.
+type ThreadCommand struct {
+    Algorithm ThreadAlgorithm
+    Charset string
+    SearchCriteria *imap.SearchCriteria
+}
+
 func (cmd *SortCommand) Command() *imap.Command {
 	args := []interface{}{
 		formatSortCriteria(cmd.SortCriteria),
@@ -28,4 +35,15 @@ func (cmd *SortCommand) Command() *imap.Command {
 
 func (cmd *SortCommand) Parse(fields []interface{}) error {
 	return errors.New("sortthread: not yet implemented")
+}
+
+func (cmd *ThreadCommand) Command() *imap.Command {
+    return &imap.Command{
+        Name: "THREAD",
+        Arguments: []interface{}{
+            cmd.Algorithm,
+            cmd.Charset,
+            cmd.SearchCriteria,
+        },
+    }
 }

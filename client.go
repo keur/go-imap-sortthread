@@ -11,6 +11,11 @@ type SortClient struct {
 	c *client.Client
 }
 
+// ThreadClient is a THREAD client.
+type ThreadClient struct {
+	c *client.Client
+}
+
 // NewClient creates a new SORT client.
 func NewSortClient(c *client.Client) *SortClient {
 	return &SortClient{c: c}
@@ -52,4 +57,48 @@ func (c *SortClient) Sort(sortCriteria []SortCriterion, searchCriteria *imap.Sea
 
 func (c *SortClient) UidSort(sortCriteria []SortCriterion, searchCriteria *imap.SearchCriteria) ([]uint32, error) {
 	return c.sort(true, sortCriteria, searchCriteria)
+}
+
+// NewClient creates a new THREAD client
+func NewThreadClient(c *client.Client) *ThreadClient {
+    return &ThreadClient{c: c}
+}
+
+// SupportThread returns true if the remote server supports the extension.
+func (c *ThreadClient) SupportThread() (bool, error) {
+    // TODO
+    return true, nil
+}
+
+func (c *ThreadClient) thread(uid bool, threadAlgorithm ThreadAlgorithm, searchCriteria *imap.SearchCriteria) ([]uint32, error) {
+	if c.c.State() != imap.SelectedState {
+		return nil, client.ErrNoMailboxSelected
+	}
+
+	var cmd imap.Commander
+	cmd = &ThreadCommand{
+        Algorithm: threadAlgorithm,
+        Charset: "UTF-8",
+		SearchCriteria: searchCriteria,
+	}
+	if uid {
+		cmd = &commands.Uid{Cmd: cmd}
+	}
+
+	res := new(SortResponse)
+
+	status, err := c.c.Execute(cmd, res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Ids, status.Err()
+}
+
+func (c *ThreadClient) Thread(threadAlgorithm ThreadAlgorithm, searchCriteria *imap.SearchCriteria) ([]uint32, error) {
+	return c.thread(false, threadAlgorithm, searchCriteria)
+}
+
+func (c *ThreadClient) UidThread(threadAlgorithm ThreadAlgorithm, searchCriteria *imap.SearchCriteria) ([]uint32, error) {
+	return c.thread(true, threadAlgorithm, searchCriteria)
 }

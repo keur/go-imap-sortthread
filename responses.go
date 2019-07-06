@@ -2,6 +2,8 @@ package sortthread
 
 import (
 	"errors"
+    "strings"
+    "fmt"
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/responses"
@@ -9,6 +11,15 @@ import (
 
 type SortResponse struct {
 	Ids []uint32
+}
+
+type Thread struct {
+	Id    uint32
+	Child []Thread
+}
+
+type ThreadResponse struct {
+	Siblings []Thread
 }
 
 func (r *SortResponse) Handle(resp imap.Resp) error {
@@ -31,4 +42,16 @@ func (r *SortResponse) Handle(resp imap.Resp) error {
 
 func (r *SortResponse) WriteTo(w *imap.Writer) error {
 	return errors.New("sortthread: not yet implemented")
+}
+
+func (r *ThreadResponse) Handle(resp imap.Resp) error {
+    name, fields, ok := imap.ParseNamedResp(resp)
+    if !ok || !strings.HasPrefix(name, "THREAD") {
+        return responses.ErrUnhandled
+    }
+    fmt.Println("%s\n", name)
+    for _, f := range fields {
+        fmt.Println("%+v\n", f)
+    }
+    return nil
 }
